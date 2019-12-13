@@ -1,0 +1,12 @@
+1. Sumitted code - 488.05 seconds
+2. sequential execution - 388.39 seconds
+3. sequential execution without lock - 174.84 seconds
+
+--------------------
+0.60 seconds to load packets into dictionary and validate 
+------------------------------
+
+from commandline:
+1. submitted code: 199 seconds
+2. Single thread execution: 176 seconds
+3. subprocess execution: 177 seconds

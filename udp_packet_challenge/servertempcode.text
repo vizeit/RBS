@@ -1,0 +1,39 @@
+def crcproc():
+    if cancel == False: 
+        if bool(crctoprocess)==True: #and thlock.acquire(False):
+            #extract last processed seq for a package
+            lpid = prevcrcseq.keys()[0]
+            lastpseq = prevcrcseq[lpid]
+            print "before while %s %d" % (lpid, lastpseq)
+            while (lastpseq == 0 or (lpid+str(lastpseq) in crctoprocess and lpid+str(lastpseq)+str('PRV') in crctoprocess)):
+                print "%s %d" % (lpid, lastpseq)
+                #extract the list of CRCs for the last seq
+                if lpid+str(lastpseq) in crctoprocess:
+                    lstcrc = crctoprocess[lpid+str(lastpseq)]
+                    i = 0
+                    prevcrc = 0
+
+                    if lastpseq == 0 or lpid+str(lastpseq)+str('PRV') in crctoprocess:
+                        for i in range(len(lstcrc)):
+                            if lastpseq == 0 and prevcrc == 0:
+                                prevcrc = lstcrc[i]
+                                continue
+                            elif i == 0:
+                                prevcrc = crctoprocess[lpid+str(lastpseq)+str('PRV')]
+                            calcrc = (zlib.crc32(ctdata, prevcrc) & 0xFFFFFFFF)
+                            if calcrc != lstcrc[i]:
+                                with open("checksum_failures.log", "a") as chk_log:
+                                    chk_log.write("%s\n%d\n%d\n%s\n%s\n\n" % (lpid, lastpseq, (lastpseq + i), hex(lstcrc[i]), hex(calcrc)))
+                                    lstcrc[i] = calcrc
+                            prevcrc = lstcrc[i]
+                        
+                        crctoprocess[lpid+str(lastpseq + len(lstcrc))+str('PRV')] = prevcrc
+                        prevcrcseq[lpid] = lastpseq + len(lstcrc)
+                        del crctoprocess[lpid+str(lastpseq)]
+                        lastpseq = lastpseq + len(lstcrc)
+                else:
+                    print "not in dictionary"        
+            #thlock.release()
+        threading.Timer(0.002, crcproc).start()
+    else:
+        exit
